@@ -3,7 +3,9 @@ const mysql = require('mysql');
 const ejs = require('ejs');
 const bodyParser = require('body-parser');
 const cors = require('cors');
-const path = require('path')
+const path = require('path');
+const fs = require('fs')
+const {v4 : uuidv4} = require('uuid')
 
 
 //Set Database connection info
@@ -24,6 +26,7 @@ const myDB = mysql.createConnection({
 
 const app = express();
 
+app.use(bodyParser.json());
 
 //Enable CORS for all origin
 app.use(cors({
@@ -36,6 +39,46 @@ app.use(bodyParser.urlencoded({
   extended: true
 }));
 app.use(express.static("public"));
+
+//
+app.get('/', (req , res)=>{
+  res.sendFile(path.join(__dirname, 'index.html'));
+})
+
+//
+app.post('/add-product', (req, res)=>{
+
+  const {ProductName , ProductPrice , image, imageExtension} = req.body;
+
+  //Create a uuid version 4 for image name
+  const newImageName = uuidv4();
+
+  // Remove header
+  let base64Image = image.split(';base64,').pop();
+
+  // Create a file path with the uuid version 4 and image extention
+  const imagePath = path.join(__dirname, 'pictures', `${newImageName}.${imageExtension}`);
+
+  // Save the image to the server
+  fs.writeFile(imagePath, base64Image, {encoding: 'base64'}, (err) => {
+    if (err) {
+      
+      console.error(err);
+
+      res.status(500).json({ message: 'Failed to save the image' });
+
+    } else {
+
+
+      // Send a response indicating the product and image were successfully added
+      res.json({ message: 'Product and image added successfully' });
+    }
+  });
+})
+
+
+
+//
 
 
 //Here is API Endpoint
@@ -61,6 +104,6 @@ app.get('/products' , (req, res)=>{
 app.use('/pictures', express.static(path.join(__dirname, 'pictures')));
 
 
-app.listen(4000, function() {
-  console.log("Server is up and runnig on port 4000");
+app.listen(3200, function() {
+  console.log("Server is up and runnig on port 3200");
 });

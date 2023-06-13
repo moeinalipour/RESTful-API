@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <form onsubmit="SendToApi(event)">
+        <label for="name">Product name: </label>
+        <input type="text" name="name" id="name" /><br><br>
+
+        <label for="price">Product Price: </label>
+        <input type="number" name="price" id="price" /><br><br>
+
+        <label for="image">Product image: </label>
+        <input type="file" name="image" id="image" /><br><br>
+
+        <button type="submit">ADD PRODUCT</button>
+
+    </form>
+
+    <script>
+        function SendToApi(event) {
+
+            event.preventDefault(); // Prevent the default form submission
+            var ProductName = document.getElementById('name').value;
+            var ProductPrice = document.getElementById('price').value;
+
+            var fileInput = document.getElementById('image');
+            var file = fileInput.files[0];
+            var reader = new FileReader();
+
+            reader.onloadend = function () {
+                var imageData = reader.result;
+
+                // Use the imageData variable to send the Base64 image data to your API or perform further actions.
+                var imageExtension = file.name.split('.').pop();
+                console.log(imageExtension);
+
+                var product = {
+                    ProductName,
+                    ProductPrice,
+                    image: imageData,
+                    imageExtension: imageExtension,
+                }
+                console.log(product);
+
+                fetch('http://localhost:3200/add-product', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(product),
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log('API Response:', data);
+                        // Handle the API response here
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        // Handle errors here
+                    });
+
+            };
+
+            if (file) {
+                reader.readAsDataURL(file);
+            }
+
+        }
+    </script>
+</body>
+
+</html>
