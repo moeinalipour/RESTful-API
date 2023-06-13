@@ -23,9 +23,9 @@
     </form>
 
     <script>
-        function SendToApi(event) {
+        function SendToApi() {
 
-            event.preventDefault(); // Prevent the default form submission
+            preventDefault(); // Prevent the default form submission
             var ProductName = document.getElementById('name').value;
             var ProductPrice = document.getElementById('price').value;
 
@@ -48,7 +48,7 @@
                 }
                 console.log(product);
 
-                fetch('http://localhost:3200/add-product', {
+                fetch('http://localhost:3210/add-product', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'

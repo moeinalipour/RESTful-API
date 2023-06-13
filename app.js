@@ -5,22 +5,22 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const path = require('path');
 const fs = require('fs')
-const {v4 : uuidv4} = require('uuid')
+const { v4: uuidv4 } = require('uuid')
 
 
 //Set Database connection info
 const dbHOST = 'localhost';
 const dbUSER = 'root';
 const dbPASSWORD = '';
-const dbTABLE = 'mydb'; 
+const dbTABLE = 'mydb';
 
 
 //Create Database connection
 const myDB = mysql.createConnection({
-    host: dbHOST,
-    user: dbUSER,
-    password: dbPASSWORD,
-    database: dbTABLE,
+  host: dbHOST,
+  user: dbUSER,
+  password: dbPASSWORD,
+  database: dbTABLE,
 });
 
 
@@ -30,7 +30,7 @@ app.use(bodyParser.json());
 
 //Enable CORS for all origin
 app.use(cors({
-    origin: '*'
+  origin: '*'
 }));
 
 
@@ -41,14 +41,14 @@ app.use(bodyParser.urlencoded({
 app.use(express.static("public"));
 
 //
-app.get('/', (req , res)=>{
+app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 })
 
 //
-app.post('/add-product', (req, res)=>{
+app.post('/add-product', (req, res) => {
 
-  const {ProductName , ProductPrice , image, imageExtension} = req.body;
+  const { pName, pPrice, image, imageExtension } = req.body;
 
   //Create a uuid version 4 for image name
   const newImageName = uuidv4();
@@ -59,10 +59,22 @@ app.post('/add-product', (req, res)=>{
   // Create a file path with the uuid version 4 and image extention
   const imagePath = path.join(__dirname, 'pictures', `${newImageName}.${imageExtension}`);
 
+
+  myDB.query(`INSERT INTO products (name , price , imageName) VALUES ('${ProductName}', '${ProductPrice}', '${newImageName + '.' + imageExtension}')`, (error, data) => {
+    if (error) {
+      console.log(error)
+      return res.json({ status: 'ERROR', error });
+    } else {
+      console.log(data)
+    }
+  });
+
+
+
   // Save the image to the server
-  fs.writeFile(imagePath, base64Image, {encoding: 'base64'}, (err) => {
+  fs.writeFile(imagePath, base64Image, { encoding: 'base64' }, (err) => {
     if (err) {
-      
+
       console.error(err);
 
       res.status(500).json({ message: 'Failed to save the image' });
@@ -82,21 +94,21 @@ app.post('/add-product', (req, res)=>{
 
 
 //Here is API Endpoint
-app.get('/products' , (req, res)=>{
-    myDB.query('SELECT * FROM products', (error, data)=>{
-        if (error){
-            return res.json({status: 'ERROR' , error});
-        }
-        const baseURL = `${req.protocol}://${req.get('host')}`;
-        const dataWithImages = data.map(product => {
-            const imagePath = baseURL + '\\pictures\\' + product.imageName;
-            return {
-              ...product,
-              imageName: imagePath
-            };
-          });
-        return res.json(dataWithImages);
-    })
+app.get('/products', (req, res) => {
+  myDB.query('SELECT * FROM products', (error, data) => {
+    if (error) {
+      return res.json({ status: 'ERROR', error });
+    }
+    const baseURL = `${req.protocol}://${req.get('host')}`;
+    const dataWithImages = data.map(product => {
+      const imagePath = baseURL + '\\pictures\\' + product.imageName;
+      return {
+        ...product,
+        imageName: imagePath
+      };
+    });
+    return res.json(dataWithImages);
+  })
 })
 
 
@@ -104,6 +116,6 @@ app.get('/products' , (req, res)=>{
 app.use('/pictures', express.static(path.join(__dirname, 'pictures')));
 
 
-app.listen(3200, function() {
-  console.log("Server is up and runnig on port 3200");
+app.listen(4000, function () {
+  console.log("Server is up and runnig on port 4000");
 });
